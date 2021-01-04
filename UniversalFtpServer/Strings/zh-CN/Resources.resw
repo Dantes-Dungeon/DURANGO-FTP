@@ -1,0 +1,221 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Dialog_Ok" xml:space="preserve">
+    <value>确定</value>
+  </data>
+  <data name="ExtendedExecution_HelpFileUri" xml:space="preserve">
+    <value>ms-appx:///Help/zh-cn/background-running.html</value>
+  </data>
+  <data name="ExtendedExecution_LearnMore" xml:space="preserve">
+    <value>了解更多</value>
+  </data>
+  <data name="ExtendedExecution_Stopped" xml:space="preserve">
+    <value>应用已在后台停止运行。点击以恢复运行。</value>
+  </data>
+  <data name="MainPage_AddressesHint.Text" xml:space="preserve">
+    <value>本机地址：</value>
+  </data>
+  <data name="MainPage_AllowAnonymousBox.Content" xml:space="preserve">
+    <value>允许匿名登录</value>
+  </data>
+  <data name="MainPage_ChangeFolderButton.Content" xml:space="preserve">
+    <value>更改</value>
+  </data>
+  <data name="MainPage_ImportantNotes_Para1.Text" xml:space="preserve">
+    <value>重要提示：</value>
+  </data>
+  <data name="MainPage_ImportantNotes_Para3.Text" xml:space="preserve">
+    <value>出于安全考虑，你只能从其他电脑上连接该FTP服务器，而不能在本机访问该FTP服务器。</value>
+  </data>
+  <data name="MainPage_Ipv4Error" xml:space="preserve">
+    <value>IPv4服务器出错: 
+{0}</value>
+    <comment>{0} is the error message</comment>
+  </data>
+  <data name="MainPage_Ipv4Listening" xml:space="preserve">
+    <value>IPv4服务器正在监听端口{0}</value>
+    <comment>{0} is the port number listening to</comment>
+  </data>
+  <data name="MainPage_Ipv4Stopped" xml:space="preserve">
+    <value>IPv4服务器已停止</value>
+    <comment>The server is stopped by user</comment>
+  </data>
+  <data name="MainPage_Ipv6Error" xml:space="preserve">
+    <value>IPv6服务器出错：
+{0}</value>
+    <comment>{0} is the error message</comment>
+  </data>
+  <data name="MainPage_Ipv6Listening" xml:space="preserve">
+    <value>IPv6服务器正在监听端口{0}</value>
+    <comment>{0} is the port number listening to</comment>
+  </data>
+  <data name="MainPage_Ipv6Stopped" xml:space="preserve">
+    <value>IPv6服务器已停止</value>
+    <comment>The server is stopped by user</comment>
+  </data>
+  <data name="MainPage_LaunchFolderButton.Content" xml:space="preserve">
+    <value>打开文件夹</value>
+  </data>
+  <data name="MainPage_PasswordBox.Header" xml:space="preserve">
+    <value>密码</value>
+  </data>
+  <data name="MainPage_PortBox.Header" xml:space="preserve">
+    <value>端口号</value>
+  </data>
+  <data name="MainPage_PortIncorrect" xml:space="preserve">
+    <value>你输入的端口号不是一个合法的数字。</value>
+  </data>
+  <data name="MainPage_RateButton.Content" xml:space="preserve">
+    <value>打分并评价…</value>
+  </data>
+  <data name="MainPage_RootFolderHint.Text" xml:space="preserve">
+    <value>根目录：</value>
+  </data>
+  <data name="MainPage_ServerStatusHint.Text" xml:space="preserve">
+    <value>状态：</value>
+  </data>
+  <data name="MainPage_StartButton.Content" xml:space="preserve">
+    <value>启动服务器</value>
+  </data>
+  <data name="MainPage_StopButton.Content" xml:space="preserve">
+    <value>停止服务器</value>
+  </data>
+  <data name="MainPage_TitleBlock.Text" xml:space="preserve">
+    <value>FTP服务器</value>
+  </data>
+  <data name="MainPage_UserNameBox.Header" xml:space="preserve">
+    <value>用户名</value>
+  </data>
+  <data name="MainPage_LogsHint.Text" xml:space="preserve">
+    <value>日志：</value>
+  </data>
+  <data name="MainPage_CommandInvoked" xml:space="preserve">
+    <value>命令：{0} 用户：{1}</value>
+  </data>
+  <data name="MainPage_ReplySent" xml:space="preserve">
+    <value>响应：{0} 用户：{1}</value>
+  </data>
+  <data name="MainPage_UserConnected" xml:space="preserve">
+    <value>{0}已连接</value>
+  </data>
+  <data name="MainPage_UserDisconnected" xml:space="preserve">
+    <value>{0}已断开</value>
+  </data>
+</root>

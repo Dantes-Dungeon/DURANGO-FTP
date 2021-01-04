@@ -1,0 +1,72 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard1.4;netstandard2.1</TargetFrameworks>
+    <PackageId>Zhaobang.FtpServer</PackageId>
+    <Authors>Zhaoquan Huang</Authors>
+    <Product>FTP Server Library</Product>
+    <Description>A package for hosting an FTP server, with authenticating and file managing customizable. Go to project site for usage example or executable version.</Description>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <Company>Zhaobang China</Company>
+    <PackageProjectUrl>https://github.com/taoyouh/FtpServer/tree/master/Library</PackageProjectUrl>
+    <Copyright>Copyright (c) Zhaoquan Huang. All rights reserved</Copyright>
+    <Version>2.1.2</Version>
+    <RootNamespace>Zhaobang.FtpServer</RootNamespace>
+    <AssemblyName>Zhaobang.FtpServer</AssemblyName>
+    <PackageLicenseUrl></PackageLicenseUrl>
+    <PackageReleaseNotes>2.1.2:
+Fixed the error of handling encoding (command "opts utf8 on")
+
+2.1.1:
+Fixed the error of handling client quitting.
+
+2.1.0:
+Supports FTP over TLS (requires implementing interfaces except on .NET Standard 2.1).
+Supports tracing user activities.
+
+2.0.0:
+Add extensibility for supporting more protocals
+Add support of IPv6
+Support LIST command for a file
+Structure in 1.0.0 are changed for better extensibility
+Bug fix</PackageReleaseNotes>
+    <PackageTags>FTP server</PackageTags>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <AssemblyVersion>2.1.2.0</AssemblyVersion>
+    <FileVersion>2.1.2.0</FileVersion>
+    <PackageLicenseExpression></PackageLicenseExpression>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <RepositoryUrl>https://github.com/taoyouh/FtpServer.git</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>bin\Debug\netstandard1.4\Zhaobang.FtpServer.xml</DocumentationFile>
+    <NoWarn>1701;1702;1705;SA1101;SA1501;SA1503;SA1512;SA1513</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <NoWarn>1701;1702;1705;SA1101;SA1501;SA1503;SA1512;SA1513</NoWarn>
+    <DocumentationFile>bin\Release\netstandard1.4\Zhaobang.FtpServer.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="stylecop.json" />
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="stylecop.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>
