@@ -64,6 +64,10 @@ namespace UniversalFtpServer
 
         public async Task<IEnumerable<FileSystemEntry>> GetListingAsync(string path)
         {
+            if (path == "-a" || path == "-al") 
+            {
+                path = "";
+            }
             string fullPath = GetLocalPath(path);
             //SetWorkingDirectory(fullPath);
             string[] splitpath = fullPath.Split("VFSROOT");
@@ -72,7 +76,8 @@ namespace UniversalFtpServer
             List<FileSystemEntry> result = new List<FileSystemEntry>();
 
             //check if the current path is the root of the virtual filesystem
-            if (splitpath[1] == "" || splitpath[1] == "\\-a")
+            // the \\- check is to make sure that it is not a sub command being entered
+            if (splitpath[1] == "" || splitpath[1].StartsWith("\\-"))
             {
                 //if in this if statement then the check returned true
                 //get all drives
@@ -262,10 +267,6 @@ namespace UniversalFtpServer
 
         private string GetLocalVfsPath(string path)
         {
-            if (path == "-a")
-            {
-                path = "";  
-            }
             //get full path from parameter "toPath"
             string toFullPath = GetLocalPath(path);
             //split from path based on vfsroot, overwrite old split path variable as it won't be referenced again and I don't want to assign another variable
