@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.Foundation;
 using Windows.Storage;
 using Zhaobang.FtpServer.File;
 
@@ -255,7 +256,25 @@ namespace UniversalFtpServer
         {
             try
             {
-                var localPath = GetLocalPath(path);
+                string localPath = GetLocalPath(path);
+                string reformatedpath = GetLocalVfsPath(path);
+                //get parent folder path
+                string parentPath = Path.GetDirectoryName(reformatedpath);
+                //get name of folder to create from full path string
+                string name = Path.GetFileName(localPath);
+                //get folder from path
+                IAsyncOperation<StorageFolder> parent = StorageFolder.GetFolderFromPathAsync(parentPath);
+                //create task and wait for it instead of using async
+                parent.AsTask().Wait();
+                //get result of task
+                StorageFolder parentresult = parent.GetResults();
+                IAsyncOperation<IStorageItem> checkfolder = parentresult.TryGetItemAsync(name);
+                checkfolder.AsTask().Wait();
+                if (checkfolder.GetResults() == null)
+                {
+                    IAsyncOperation<StorageFolder> createfolder = parentresult.CreateFolderAsync(name);
+                    createfolder.AsTask().Wait();
+                }
                 workFolder = GetFtpPath(localPath);
                 return true;
             }
