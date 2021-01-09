@@ -204,7 +204,7 @@ namespace UniversalFtpServer
 					fileitem.DateModified = System.DateTimeOffset.FromFileTime(datemodifiedoffset);
 
 					//set the size
-					fileitem.Size = (ulong)findDataResult.fileSizeLow << 32 | (ulong)(uint)findDataResult.fileSizeHigh;
+					fileitem.Size = (ulong)findDataResult.fileSizeHigh << 32 | (ulong)(uint)findDataResult.fileSizeLow;
 
 					if (((FileAttributes)findDataResult.itemAttributes & FileAttributes.Directory) == FileAttributes.Directory)
 					{
