@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Storage;
+using Windows.Storage.Pickers.Provider;
+using Windows.UI.Xaml;
 using Zhaobang.FtpServer.File;
 
 namespace UniversalFtpServer
@@ -22,12 +24,14 @@ namespace UniversalFtpServer
 
         public async Task CreateDirectoryAsync(string path)
         {
-            string fullPath = GetLocalPath(path);
-
-            string reformatedpath = GetLocalVfsPath(fullPath);
-            //carry out function with fixed path
-            string parentPath = Path.GetDirectoryName(reformatedpath);
+            string fullPath = GetLocalVfsPath(path);
+            string parentPath = Path.GetDirectoryName(fullPath);
             string name = Path.GetFileName(fullPath);
+            bool parentpathexists = await ItemExists(parentPath);
+            if (!parentpathexists)
+            {
+                await RecursivelyCreateDirectoryAsync(parentPath);
+            }
             StorageFolder parent = await StorageFolder.GetFolderFromPathAsync(parentPath);
             await parent.CreateFolderAsync(name);
         }
@@ -37,9 +41,73 @@ namespace UniversalFtpServer
             path = GetLocalVfsPath(path);
             string parentPath = Path.GetDirectoryName(path);
             string name = Path.GetFileName(path);
+            var itemexists = await ItemExists(parentPath);
+            bool parentpathexists = itemexists;
+            if (!parentpathexists)
+            {
+                await RecursivelyCreateDirectoryAsync(parentPath);
+            }
             StorageFolder parent = await StorageFolder.GetFolderFromPathAsync(parentPath);
             StorageFile file = await parent.CreateFileAsync(name, CreationCollisionOption.ReplaceExisting);
             return await file.OpenStreamForWriteAsync();
+        }
+
+        public async Task RecursivelyCreateDirectoryAsync(string path)
+        {
+            int parentcount = 0;
+            bool hitbase = false;
+            var itemexists = await ItemExists(path);
+            var folderexists = itemexists;
+            while (!folderexists)
+            {
+                string TempPath = path;
+                for (int i = 0; i < parentcount; i++)
+                {
+                    TempPath = Path.Combine(TempPath, ".."); 
+                }
+                TempPath = new Uri(TempPath).LocalPath;
+                if (TempPath.EndsWith("\\"))
+                {
+                    TempPath = TempPath.Substring(0, TempPath.Length - "\\".Length);
+                }
+                var TempParentPath = new Uri(Path.Combine(TempPath, "..")).LocalPath;
+                if (TempParentPath.EndsWith("\\"))
+                {
+                    TempParentPath = TempParentPath.Substring(0, TempParentPath.Length - "\\".Length);
+                }
+                itemexists = await ItemExists(TempParentPath);
+                var TempParentPathExists = itemexists;
+                if (TempParentPathExists)
+                {
+                    string name = Path.GetFileName(TempPath);
+                    StorageFolder parent = await StorageFolder.GetFolderFromPathAsync(TempParentPath);
+                    await parent.CreateFolderAsync(name);
+                    hitbase = true;
+                }
+                if (!hitbase) {
+                    parentcount++;
+                } else {
+                    parentcount--;
+                }
+                itemexists = await ItemExists(path);
+                folderexists = itemexists;
+            }
+
+            var breakboi = "complete";
+        }
+
+        public async Task<bool> ItemExists(string path)
+        {
+            string ParentPath = System.IO.Path.GetDirectoryName(path);
+            string FileName = System.IO.Path.GetFileName(path);
+            IStorageItem file = null;
+            try
+            {
+                var folder = await StorageFolder.GetFolderFromPathAsync(ParentPath);
+                file = await folder.TryGetItemAsync(FileName);
+            }
+            catch { }
+            return file != null;
         }
 
         public async Task DeleteAsync(string path)
@@ -113,25 +181,6 @@ namespace UniversalFtpServer
                 result.Add(localentry);
             } else {
                 string reformatedpath = GetLocalVfsPath(path);
-                /*//get files in the selected dir
-                StorageFolder folder = await StorageFolder.GetFolderFromPathAsync(reformatedpath);
-                //loop through all the files in the dir
-                foreach (var item in await folder.GetItemsAsync())
-                {
-                    //get the properties of the item
-                    var properties = await item.GetBasicPropertiesAsync();
-                    //create entry for the file
-                    FileSystemEntry entry = new FileSystemEntry()
-                    {
-                        IsDirectory = item.IsOfType(StorageItemTypes.Folder),
-                        IsReadOnly = item.Attributes.HasFlag(Windows.Storage.FileAttributes.ReadOnly),
-                        LastWriteTime = properties.DateModified.ToUniversalTime().DateTime,
-                        Length = (long)properties.Size,
-                        Name = item.Name
-                    };
-                    //add entry to list
-                    result.Add(entry);
-                }*/
                 List<MonitoredFolderItem> monfiles = PinvokeFilesystem.GetItems(reformatedpath);
                 foreach (var item in monfiles)
                 {
@@ -144,7 +193,7 @@ namespace UniversalFtpServer
                         Name = item.Name
                     };
                     result.Add(entry);
-                }
+                }   
             }
 
             //return list of entrys
@@ -257,29 +306,6 @@ namespace UniversalFtpServer
             try
             {
                 string localPath = GetLocalPath(path);
-                //handling for folder upload in fast fxp and filezilla
-                try
-                {
-                    string reformatedpath = GetLocalVfsPath(path);
-                    //get parent folder path
-                    string parentPath = Path.GetDirectoryName(reformatedpath);
-                    //get name of folder to create from full path string
-                    string name = Path.GetFileName(localPath);
-                    //get folder from path
-                    IAsyncOperation<StorageFolder> parent = StorageFolder.GetFolderFromPathAsync(parentPath);
-                    //create task and wait for it instead of using async
-                    parent.AsTask().Wait();
-                    //get result of task
-                    StorageFolder parentresult = parent.GetResults();
-                    IAsyncOperation<IStorageItem> checkfolder = parentresult.TryGetItemAsync(name);
-                    checkfolder.AsTask().Wait();
-                    if (checkfolder.GetResults() == null)
-                    {
-                        IAsyncOperation<StorageFolder> createfolder = parentresult.CreateFolderAsync(name);
-                        createfolder.AsTask().Wait();
-                    }
-                }
-                catch { }
                 workFolder = GetFtpPath(localPath);
                 return true;
             }
@@ -324,7 +350,7 @@ namespace UniversalFtpServer
             //I tried implementing this as a trim end but it did not seem to work
             if (toFullPath.EndsWith("\\"))
             {
-                toFullPath = toFullPath.Substring(0, toFullPath.Length - 2);
+                toFullPath = toFullPath.Substring(0, toFullPath.Length - "\\".Length);
             }
 
             return toFullPath;
