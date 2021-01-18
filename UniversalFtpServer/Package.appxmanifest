@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities" IgnorableNamespaces="uap mp rescap">
-  <Identity Name="1337Tunip3.DurangoFTP" Publisher="CN=584E9342-CAA7-4820-8744-3B371B8C8C66" Version="1.4.1.0" />
+  <Identity Name="1337Tunip3.DurangoFTP" Publisher="CN=t3" Version="1.4.2.0" />
   <mp:PhoneIdentity PhoneProductId="0d6ba8b9-ac28-4459-8ba7-c3787210bc68" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
     <DisplayName>Durango FTP</DisplayName>

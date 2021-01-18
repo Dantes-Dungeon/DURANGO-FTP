@@ -75,6 +75,10 @@ namespace UniversalFtpServer
                 {
                     TempParentPath = TempParentPath.Substring(0, TempParentPath.Length - "\\".Length);
                 }
+                if (TempParentPath == TempPath || TempPath == null)
+                {
+                    throw new FileNoAccessException("Failed to recursively create parent directory");
+                }
                 itemexists = await ItemExists(TempParentPath);
                 var TempParentPathExists = itemexists;
                 if (TempParentPathExists)
