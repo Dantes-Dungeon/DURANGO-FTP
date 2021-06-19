@@ -25,15 +25,7 @@ namespace UniversalFtpServer
         public async Task CreateDirectoryAsync(string path)
         {
             string fullPath = GetLocalVfsPath(path);
-            string parentPath = Path.GetDirectoryName(fullPath);
-            string name = Path.GetFileName(fullPath);
-            bool parentpathexists = await ItemExists(parentPath);
-            if (!parentpathexists)
-            {
-                await RecursivelyCreateDirectoryAsync(parentPath);
-            }
-            StorageFolder parent = await StorageFolder.GetFolderFromPathAsync(parentPath);
-            await parent.CreateFolderAsync(name);
+            await RecursivelyCreateDirectoryAsync(fullPath);
         }
 
         public async Task<Stream> CreateFileForWriteAsync(string path)
@@ -41,7 +33,7 @@ namespace UniversalFtpServer
             path = GetLocalVfsPath(path);
             string parentPath = Path.GetDirectoryName(path);
             string name = Path.GetFileName(path);
-            var itemexists = await ItemExists(parentPath);
+            var itemexists = await ItemExistsAsync(parentPath);
             bool parentpathexists = itemexists;
             if (!parentpathexists)
             {
@@ -54,53 +46,17 @@ namespace UniversalFtpServer
 
         public async Task RecursivelyCreateDirectoryAsync(string path)
         {
-            int parentcount = 0;
-            bool hitbase = false;
-            var itemexists = await ItemExists(path);
-            var folderexists = itemexists;
-            while (!folderexists)
-            {
-                string TempPath = path;
-                for (int i = 0; i < parentcount; i++)
-                {
-                    TempPath = Path.Combine(TempPath, ".."); 
-                }
-                TempPath = new Uri(TempPath).LocalPath;
-                if (TempPath.EndsWith("\\"))
-                {
-                    TempPath = TempPath.Substring(0, TempPath.Length - "\\".Length);
-                }
-                var TempParentPath = new Uri(Path.Combine(TempPath, "..")).LocalPath;
-                if (TempParentPath.EndsWith("\\"))
-                {
-                    TempParentPath = TempParentPath.Substring(0, TempParentPath.Length - "\\".Length);
-                }
-                if (TempParentPath == TempPath || TempPath == null)
-                {
-                    throw new FileNoAccessException("Failed to recursively create parent directory");
-                }
-                itemexists = await ItemExists(TempParentPath);
-                var TempParentPathExists = itemexists;
-                if (TempParentPathExists)
-                {
-                    string name = Path.GetFileName(TempPath);
-                    StorageFolder parent = await StorageFolder.GetFolderFromPathAsync(TempParentPath);
-                    await parent.CreateFolderAsync(name);
-                    hitbase = true;
-                }
-                if (!hitbase) {
-                    parentcount++;
-                } else {
-                    parentcount--;
-                }
-                itemexists = await ItemExists(path);
-                folderexists = itemexists;
+            string parentPath = System.IO.Directory.GetParent(path).ToString();
+            var itemexists = await ItemExistsAsync(parentPath);
+            if (!itemexists) 
+            { 
+                await RecursivelyCreateDirectoryAsync(parentPath);
             }
-
-            var breakboi = "complete";
+            StorageFolder parent = await StorageFolder.GetFolderFromPathAsync(parentPath);
+            await parent.CreateFolderAsync(System.IO.Path.GetFileName(path));
         }
 
-        public async Task<bool> ItemExists(string path)
+        public async Task<bool> ItemExistsAsync(string path)
         {
             string ParentPath = System.IO.Path.GetDirectoryName(path);
             string FileName = System.IO.Path.GetFileName(path);

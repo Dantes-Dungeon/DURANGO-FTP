@@ -138,7 +138,6 @@ namespace UniversalFtpServer
 		}
 
 
-
 		[DllImport("api-ms-win-core-file-fromapp-l1-1-0.dll", SetLastError = true, CharSet = CharSet.Unicode)]
 		static extern IntPtr FindFirstFileExFromApp(
 			string lpFileName,
@@ -150,7 +149,7 @@ namespace UniversalFtpServer
 
 		const int FIND_FIRST_EX_LARGE_FETCH = 2;
 
-		[DllImport("api-ms-win-core-file-l1-1-0.dll", CharSet = CharSet.Unicode)]
+		[DllImport("api-ms-win-core-file-l1-1-0.dll", SetLastError = true, CharSet = CharSet.Unicode)]
 		static extern bool FindNextFile(IntPtr hFindFile, out WIN32_FIND_DATA lpFindFileData);
 
 		[DllImport("api-ms-win-core-file-l1-1-0.dll")]
