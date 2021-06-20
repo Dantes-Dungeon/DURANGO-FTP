@@ -5,6 +5,8 @@ using System.Text;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
 using FileAttributes = System.IO.FileAttributes;
 
 namespace UniversalFtpServer
@@ -154,6 +156,26 @@ namespace UniversalFtpServer
 
 		[DllImport("api-ms-win-core-file-l1-1-0.dll")]
 		static extern bool FindClose(IntPtr hFindFile);
+
+		public enum GET_FILEEX_INFO_LEVELS
+		{
+			GetFileExInfoStandard,
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct WIN32_FILE_ATTRIBUTE_DATA
+		{
+			public System.IO.FileAttributes dwFileAttributes;
+			public FILETIME ftCreationTime;
+			public FILETIME ftLastAccessTime;
+			public FILETIME ftLastWriteTime;
+			public uint nFileSizeHigh;
+			public uint nFileSizeLow;
+		}
+
+		[DllImport("api-ms-win-core-file-fromapp-l1-1-0.dll", SetLastError = true, CharSet = CharSet.Auto)]
+		[return: MarshalAs(UnmanagedType.Bool)]
+		public static extern bool GetFileAttributesExFromApp(string lpFileName, GET_FILEEX_INFO_LEVELS fInfoLevelId, out WIN32_FILE_ATTRIBUTE_DATA lpFileInformation);
 
 		//function
 		public static List<MonitoredFolderItem> GetItems(string path)

@@ -33,7 +33,7 @@ namespace UniversalFtpServer
             path = GetLocalVfsPath(path);
             string parentPath = Path.GetDirectoryName(path);
             string name = Path.GetFileName(path);
-            var itemexists = await ItemExistsAsync(parentPath);
+            var itemexists = ItemExists(parentPath);
             bool parentpathexists = itemexists;
             if (!parentpathexists)
             {
@@ -47,7 +47,7 @@ namespace UniversalFtpServer
         public async Task RecursivelyCreateDirectoryAsync(string path)
         {
             string parentPath = System.IO.Directory.GetParent(path).ToString();
-            var itemexists = await ItemExistsAsync(parentPath);
+            var itemexists = ItemExists(parentPath);
             if (!itemexists) 
             { 
                 await RecursivelyCreateDirectoryAsync(parentPath);
@@ -56,18 +56,16 @@ namespace UniversalFtpServer
             await parent.CreateFolderAsync(System.IO.Path.GetFileName(path));
         }
 
-        public async Task<bool> ItemExistsAsync(string path)
+
+        public bool ItemExists(string path) 
         {
-            string ParentPath = System.IO.Path.GetDirectoryName(path);
-            string FileName = System.IO.Path.GetFileName(path);
-            IStorageItem file = null;
-            try
+            PinvokeFilesystem.GetFileAttributesExFromApp(path, PinvokeFilesystem.GET_FILEEX_INFO_LEVELS.GetFileExInfoStandard, out var lpFileInfo);
+            if (lpFileInfo.dwFileAttributes != 0)
             {
-                var folder = await StorageFolder.GetFolderFromPathAsync(ParentPath);
-                file = await folder.TryGetItemAsync(FileName);
+                return true;
+            } else {
+                return false;
             }
-            catch { }
-            return file != null;
         }
 
         public async Task DeleteAsync(string path)
@@ -207,6 +205,7 @@ namespace UniversalFtpServer
             try
             {
                 item = await StorageFolder.GetFolderFromPathAsync(fromPath);
+                goto rename;
             }
             catch { }
             if (item == null)
