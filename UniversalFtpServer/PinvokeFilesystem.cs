@@ -177,6 +177,10 @@ namespace UniversalFtpServer
 		[return: MarshalAs(UnmanagedType.Bool)]
 		public static extern bool GetFileAttributesExFromApp(string lpFileName, GET_FILEEX_INFO_LEVELS fInfoLevelId, out WIN32_FILE_ATTRIBUTE_DATA lpFileInformation);
 
+		[DllImport("api-ms-win-core-file-fromapp-l1-1-0.dll", SetLastError = true, CharSet = CharSet.Auto)]
+		[return: MarshalAs(UnmanagedType.Bool)]
+		public static extern bool CreateDirectoryFromApp(string lpPathName, IntPtr SecurityAttributes);
+
 		//function
 		public static List<MonitoredFolderItem> GetItems(string path)
 		{

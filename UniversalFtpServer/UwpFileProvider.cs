@@ -26,6 +26,7 @@ namespace UniversalFtpServer
         {
             string fullPath = GetLocalVfsPath(path);
             await RecursivelyCreateDirectoryAsync(fullPath);
+            //await RecursivelyCreateDirectoryAsync(parentPath);
         }
 
         public async Task<Stream> CreateFileForWriteAsync(string path)
@@ -52,8 +53,7 @@ namespace UniversalFtpServer
             { 
                 await RecursivelyCreateDirectoryAsync(parentPath);
             }
-            StorageFolder parent = await StorageFolder.GetFolderFromPathAsync(parentPath);
-            await parent.CreateFolderAsync(System.IO.Path.GetFileName(path));
+            await Task.Run(() => {PinvokeFilesystem.CreateDirectoryFromApp(path, IntPtr.Zero);});
         }
 
 
