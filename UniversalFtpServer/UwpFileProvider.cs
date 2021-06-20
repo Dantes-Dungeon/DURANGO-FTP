@@ -53,13 +53,13 @@ namespace UniversalFtpServer
             { 
                 await RecursivelyCreateDirectoryAsync(parentPath);
             }
-            await Task.Run(() => {PinvokeFilesystem.CreateDirectoryFromApp(path, IntPtr.Zero);});
+            await Task.Run(() => {PinvokeFilesystem.CreateDirectoryFromApp((@"\\?\" + path), IntPtr.Zero);});
         }
 
 
         public bool ItemExists(string path) 
         {
-            PinvokeFilesystem.GetFileAttributesExFromApp(path, PinvokeFilesystem.GET_FILEEX_INFO_LEVELS.GetFileExInfoStandard, out var lpFileInfo);
+            PinvokeFilesystem.GetFileAttributesExFromApp((@"\\?\" + path), PinvokeFilesystem.GET_FILEEX_INFO_LEVELS.GetFileExInfoStandard, out var lpFileInfo);
             if (lpFileInfo.dwFileAttributes != 0)
             {
                 return true;
@@ -71,22 +71,40 @@ namespace UniversalFtpServer
         public async Task DeleteAsync(string path)
         {
             path = GetLocalVfsPath(path);
+            PinvokeFilesystem.GetFileAttributesExFromApp((@"\\?\" + path), PinvokeFilesystem.GET_FILEEX_INFO_LEVELS.GetFileExInfoStandard, out var lpFileInfo);
             //this handling is only neccessary as winscp for some reason sends directory delete commands as file delete commands
-            if (Path.HasExtension(path))
+            if (lpFileInfo.dwFileAttributes.HasFlag(System.IO.FileAttributes.Directory))
             {
-                StorageFile file = await StorageFile.GetFileFromPathAsync(path);
-                await file.DeleteAsync();
+                await RecursivelyDeleteDirectoryAsync(path);
+            }
+            else if (lpFileInfo.dwFileAttributes != 0)
+            {
+                await Task.Run(() => { PinvokeFilesystem.DeleteFileFromApp(@"\\?\" + path); });
             } else {
-                StorageFolder folder = await StorageFolder.GetFolderFromPathAsync(path);
-                await folder.DeleteAsync();
+                throw new FileBusyException("Items of unknown type can't be deleted");
             }
         }
 
         public async Task DeleteDirectoryAsync(string path)
         {
             path = GetLocalVfsPath(path);
-            StorageFolder folder = await StorageFolder.GetFolderFromPathAsync(path);
-            await folder.DeleteAsync();
+            await RecursivelyDeleteDirectoryAsync(path);
+        }
+
+        public async Task RecursivelyDeleteDirectoryAsync(string path) 
+        {
+            List<MonitoredFolderItem> mininfo = PinvokeFilesystem.GetMinInfo(path);
+            foreach (MonitoredFolderItem item in mininfo) 
+            {
+                string itempath = System.IO.Path.Combine(item.ParentFolderPath, item.Name);
+                if (item.attributes.HasFlag(System.IO.FileAttributes.Directory))
+                {
+                    await RecursivelyDeleteDirectoryAsync(itempath);
+                } else {
+                    await Task.Run(()=> { PinvokeFilesystem.DeleteFileFromApp(@"\\?\" + itempath); });
+                }
+            }
+            await Task.Run(() => { PinvokeFilesystem.RemoveDirectoryFromApp(@"\\?\" + path); });
         }
 
         public async Task<IEnumerable<FileSystemEntry>> GetListingAsync(string path)
@@ -158,16 +176,16 @@ namespace UniversalFtpServer
             return result;
         }
 
-        public async Task<IEnumerable<string>> GetNameListingAsync(string path)
+        public Task<IEnumerable<string>> GetNameListingAsync(string path)
         {
             path = GetLocalVfsPath(path);
-            StorageFolder folder = await StorageFolder.GetFolderFromPathAsync(path);
             List<string> result = new List<string>();
-            foreach (var item in await folder.GetItemsAsync())
+            List<MonitoredFolderItem> monfiles = PinvokeFilesystem.GetNames(path);
+            foreach (var item in monfiles)
             {
                 result.Add(item.Name);
             }
-            return result;
+            return Task.FromResult(result.AsEnumerable());
         }
 
         public string GetWorkingDirectory()
@@ -214,6 +232,55 @@ namespace UniversalFtpServer
             }
 
             rename:
+            if (Path.GetDirectoryName(fromPath) != Path.GetDirectoryName(toPath))
+            {
+                string toFullPathParent = Path.GetDirectoryName(toPath);
+                StorageFolder destinationFolder = await StorageFolder.GetFolderFromPathAsync(toFullPathParent);
+                if (item is IStorageFile file)
+                {
+                    await file.MoveAsync(destinationFolder, Path.GetFileName(toPath));
+                }
+                else if (item is IStorageFolder folder)
+                {
+                    if (!(await MoveFolder(folder, destinationFolder)))
+                        throw new FileBusyException("Some items can't be moved");
+                }
+                else
+                {
+                    throw new FileBusyException("Items of unknown type can't be moved");
+                }
+            }
+            else
+            {
+                await item.RenameAsync(Path.GetFileName(toPath));
+            }
+        }
+
+        public async Task RenameAsync2(string fromPath, string toPath)
+        {
+            //get full path from parameter "fromPath"
+            fromPath = GetLocalVfsPath(fromPath);
+            toPath = GetLocalVfsPath(toPath);
+
+            IStorageItem item = null;
+            try
+            {
+                item = await StorageFile.GetFileFromPathAsync(fromPath);
+                goto rename;
+            }
+            catch { }
+            try
+            {
+                item = await StorageFolder.GetFolderFromPathAsync(fromPath);
+                goto rename;
+            }
+            catch { }
+            if (item == null)
+            {
+                throw new FileNoAccessException("Can't find the item to rename");
+            }
+
+        rename:
             if (Path.GetDirectoryName(fromPath) != Path.GetDirectoryName(toPath))
             {
                 string toFullPathParent = Path.GetDirectoryName(toPath);
