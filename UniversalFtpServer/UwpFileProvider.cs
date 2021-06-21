@@ -2,12 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
+using System.Reflection;
 using System.Threading.Tasks;
-using Windows.Foundation;
 using Windows.Storage;
-using Windows.Storage.Pickers.Provider;
-using Windows.UI.Xaml;
 using Zhaobang.FtpServer.File;
 
 namespace UniversalFtpServer
@@ -26,7 +23,6 @@ namespace UniversalFtpServer
         {
             string fullPath = GetLocalVfsPath(path);
             await RecursivelyCreateDirectoryAsync(fullPath);
-            //await RecursivelyCreateDirectoryAsync(parentPath);
         }
 
         public async Task<Stream> CreateFileForWriteAsync(string path)
@@ -107,7 +103,7 @@ namespace UniversalFtpServer
             await Task.Run(() => { PinvokeFilesystem.RemoveDirectoryFromApp(@"\\?\" + path); });
         }
 
-        public async Task<IEnumerable<FileSystemEntry>> GetListingAsync(string path)
+        public Task<IEnumerable<FileSystemEntry>> GetListingAsync(string path)
         {
             if (path == "-a" || path == "-al") 
             {
@@ -173,18 +169,13 @@ namespace UniversalFtpServer
             }
 
             //return list of entrys
-            return result;
+            return Task.FromResult(result.AsEnumerable());
         }
 
         public Task<IEnumerable<string>> GetNameListingAsync(string path)
         {
             path = GetLocalVfsPath(path);
-            List<string> result = new List<string>();
-            List<MonitoredFolderItem> monfiles = PinvokeFilesystem.GetNames(path);
-            foreach (var item in monfiles)
-            {
-                result.Add(item.Name);
-            }
+            List<string> result = PinvokeFilesystem.GetNames(path);
             return Task.FromResult(result.AsEnumerable());
         }
 
@@ -213,112 +204,56 @@ namespace UniversalFtpServer
             fromPath = GetLocalVfsPath(fromPath);
             toPath = GetLocalVfsPath(toPath);
 
-            IStorageItem item = null;
-            try
-            {
-                item = await StorageFile.GetFileFromPathAsync(fromPath);
-                goto rename;
-            }
-            catch { }
-            try
-            {
-                item = await StorageFolder.GetFolderFromPathAsync(fromPath);
-                goto rename;
-            }
-            catch { }
-            if (item == null)
+            PinvokeFilesystem.GetFileAttributesExFromApp((@"\\?\" + fromPath), PinvokeFilesystem.GET_FILEEX_INFO_LEVELS.GetFileExInfoStandard, out var lpFileInfo);
+            if (lpFileInfo.dwFileAttributes == 0)
             {
                 throw new FileNoAccessException("Can't find the item to rename");
-            }
-
-            rename:
-            if (Path.GetDirectoryName(fromPath) != Path.GetDirectoryName(toPath))
-            {
-                string toFullPathParent = Path.GetDirectoryName(toPath);
-                StorageFolder destinationFolder = await StorageFolder.GetFolderFromPathAsync(toFullPathParent);
-                if (item is IStorageFile file)
+            } else {
+                if (lpFileInfo.dwFileAttributes.HasFlag(System.IO.FileAttributes.Directory))
                 {
-                    await file.MoveAsync(destinationFolder, Path.GetFileName(toPath));
-                }
-                else if (item is IStorageFolder folder)
-                {
-                    if (!(await MoveFolder(folder, destinationFolder)))
+                    PinvokeFilesystem.CreateDirectoryFromApp(@"\\?\" + toPath, IntPtr.Zero);
+                    if (!(await MoveFolderAsync(fromPath, toPath)))
                         throw new FileBusyException("Some items can't be moved");
+                } else {
+                    await Task.Run(() =>
+                    {
+                        PinvokeFilesystem.CopyFileFromApp(fromPath, toPath, false);
+                        PinvokeFilesystem.DeleteFileFromApp(fromPath);
+                    });
                 }
-                else
-                {
-                    throw new FileBusyException("Items of unknown type can't be moved");
-                }
-            }
-            else
-            {
-                await item.RenameAsync(Path.GetFileName(toPath));
             }
         }
 
-        public async Task RenameAsync2(string fromPath, string toPath)
+        private async Task<bool> MoveFolderAsync(string folder, string destination)
         {
-            //get full path from parameter "fromPath"
-            fromPath = GetLocalVfsPath(fromPath);
-            toPath = GetLocalVfsPath(toPath);
 
-            IStorageItem item = null;
-            try
+            List<MonitoredFolderItem> mininfo = PinvokeFilesystem.GetMinInfo(folder);
+            foreach (MonitoredFolderItem item in mininfo)
             {
-                item = await StorageFile.GetFileFromPathAsync(fromPath);
-                goto rename;
-            }
-            catch { }
-            try
-            {
-                item = await StorageFolder.GetFolderFromPathAsync(fromPath);
-                goto rename;
-            }
-            catch { }
-            if (item == null)
-            {
-                throw new FileNoAccessException("Can't find the item to rename");
-            }
-
-        rename:
-            if (Path.GetDirectoryName(fromPath) != Path.GetDirectoryName(toPath))
-            {
-                string toFullPathParent = Path.GetDirectoryName(toPath);
-                StorageFolder destinationFolder = await StorageFolder.GetFolderFromPathAsync(toFullPathParent);
-                if (item is IStorageFile file)
+                string itempath = System.IO.Path.Combine(item.ParentFolderPath, item.Name);
+                string targetpath = System.IO.Path.Combine(destination, item.Name);
+                if (item.attributes.HasFlag(System.IO.FileAttributes.Directory))
                 {
-                    await file.MoveAsync(destinationFolder, Path.GetFileName(toPath));
-                }
-                else if (item is IStorageFolder folder)
-                {
-                    if (!(await MoveFolder(folder, destinationFolder)))
-                        throw new FileBusyException("Some items can't be moved");
+                    await Task.Run(() =>
+                    {
+                        PinvokeFilesystem.CreateDirectoryFromApp(@"\\?\" + targetpath, IntPtr.Zero);
+                    });
+                    await MoveFolderAsync(itempath, targetpath);
                 }
                 else
                 {
-                    throw new FileBusyException("Items of unknown type can't be moved");
+                    //move file
+                    await Task.Run(() => 
+                    {
+                        PinvokeFilesystem.CopyFileFromApp(@"\\?\" + itempath, @"\\?\" + targetpath, false);
+                        PinvokeFilesystem.DeleteFileFromApp(@"\\?\" + itempath); 
+                    });
                 }
             }
-            else
+            mininfo = PinvokeFilesystem.GetMinInfo(folder);
+            if (mininfo.Count() == 0)
             {
-                await item.RenameAsync(Path.GetFileName(toPath));
-            }
-        }
-
-        private async Task<bool> MoveFolder(IStorageFolder folder, IStorageFolder destination)
-        {
-            foreach (var file in await folder.GetFilesAsync())
-            {
-                await file.MoveAsync(destination);
-            }
-            foreach (var subFolder in await folder.GetFoldersAsync())
-            {
-                var destSubFolder = await destination.CreateFolderAsync(subFolder.Name);
-                await MoveFolder(subFolder, destSubFolder);
-            }
-            if (!(await folder.GetItemsAsync()).Any())
-            {
-                await folder.DeleteAsync();
+                await Task.Run(() => { PinvokeFilesystem.RemoveDirectoryFromApp(@"\\?\" + folder); });
                 return true;
             }
             else

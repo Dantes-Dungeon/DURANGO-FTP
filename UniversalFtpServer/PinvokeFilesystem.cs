@@ -5,7 +5,6 @@ using System.Text;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using FileAttributes = System.IO.FileAttributes;
 
@@ -188,6 +187,9 @@ namespace UniversalFtpServer
 		[DllImport("api-ms-win-core-file-fromapp-l1-1-0.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
 		public static extern bool RemoveDirectoryFromApp(string lpPathName);
 
+		[DllImport("api-ms-win-core-file-fromapp-l1-1-0.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
+		public static extern bool CopyFileFromApp(string lpExistingFileName, string lpNewFileName, bool bFailIfExists);
+
 		//function
 		public static List<MonitoredFolderItem> GetItems(string path)
 		{
@@ -253,28 +255,12 @@ namespace UniversalFtpServer
 			}
 
 			return result;
-
-
-			/// Local Functions
-
-
-			bool IsSystemItem(string itemName)
-			{
-
-				if
-				(
-					findDataResult.itemName == "." ||
-					findDataResult.itemName == ".."
-				)
-					return true;
-				return false;
-			}
 		}
 
 		//return just folder names, seperate methods as more of it is stripped out
-		public static List<MonitoredFolderItem> GetNames(string path)
+		public static List<string> GetNames(string path)
 		{
-			var result = new List<MonitoredFolderItem>();
+			var result = new List<string>();
 
 			WIN32_FIND_DATA findDataResult;
 			FINDEX_INFO_LEVELS findInfoLevel = FINDEX_INFO_LEVELS.FindExInfoBasic;
@@ -296,8 +282,8 @@ namespace UniversalFtpServer
 						continue;
 
 					// NOTE: This section was originally commented out when the PInvoke method was abandoned
-					MonitoredFolderItem fileitem = new MonitoredFolderItem(findDataResult.itemName);
-					result.Add(fileitem);
+					result.Add(findDataResult.itemName);
+
 					++count;
 				} while (FindNextFile(hFile, out findDataResult));
 
@@ -305,21 +291,6 @@ namespace UniversalFtpServer
 			}
 
 			return result;
-
-
-			/// Local Functions
-
-
-			bool IsSystemItem(string itemName)
-			{
-				if
-				(
-					findDataResult.itemName == "." ||
-					findDataResult.itemName == ".."
-				)
-					return true;
-				return false;
-			}
 		}
 
 		//return just folder names, seperate methods as more of it is stripped out
@@ -361,21 +332,18 @@ namespace UniversalFtpServer
 			}
 
 			return result;
+		}
 
-
-			/// Local Functions
-
-
-			bool IsSystemItem(string itemName)
-			{
-				if
-				(
-					findDataResult.itemName == "." ||
-					findDataResult.itemName == ".."
-				)
-					return true;
-				return false;
-			}
+		/// local function
+		private static bool IsSystemItem(string itemName)
+		{
+			if
+			(
+				itemName == "." ||
+				itemName == ".."
+			)
+				return true;
+			return false;
 		}
 	}
 }
