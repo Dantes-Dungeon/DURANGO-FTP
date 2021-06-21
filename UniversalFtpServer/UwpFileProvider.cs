@@ -29,16 +29,13 @@ namespace UniversalFtpServer
         {
             path = GetLocalVfsPath(path);
             string parentPath = Path.GetDirectoryName(path);
-            string name = Path.GetFileName(path);
-            var itemexists = ItemExists(parentPath);
-            bool parentpathexists = itemexists;
-            if (!parentpathexists)
+            var parentexists = ItemExists(parentPath);
+            if (!parentexists)
             {
                 await RecursivelyCreateDirectoryAsync(parentPath);
             }
-            StorageFolder parent = await StorageFolder.GetFolderFromPathAsync(parentPath);
-            StorageFile file = await parent.CreateFileAsync(name, CreationCollisionOption.ReplaceExisting);
-            return await file.OpenStreamForWriteAsync();
+            IntPtr hStream = PinvokeFilesystem.CreateFileFromApp(path, PinvokeFilesystem.GENERIC_WRITE, 0, IntPtr.Zero, PinvokeFilesystem.CREATE_ALWAYS, (uint)PinvokeFilesystem.File_Attributes.BackupSemantics, IntPtr.Zero);
+            return new FileStream(hStream, FileAccess.Write);
         }
 
         public async Task RecursivelyCreateDirectoryAsync(string path)
