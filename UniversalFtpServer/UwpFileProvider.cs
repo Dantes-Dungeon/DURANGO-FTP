@@ -196,8 +196,8 @@ namespace UniversalFtpServer
         public async Task<Stream> OpenFileForReadAsync(string path) 
         {
             path = GetLocalVfsPath(path);
-            var file = await StorageFile.GetFileFromPathAsync(path);
-            return await file.OpenStreamForReadAsync();
+            IntPtr hStream = PinvokeFilesystem.CreateFileFromApp(path, PinvokeFilesystem.GENERIC_READ, 0, IntPtr.Zero, PinvokeFilesystem.OPEN_ALWAYS, 4, IntPtr.Zero);
+            return new FileStream(hStream, FileAccess.Read);
         }
 
         public async Task<Stream> OpenFileForWriteAsync(string path)
