@@ -608,7 +608,7 @@ namespace Zhaobang.FtpServer.Connections
                 await ReplyAsync(FtpReplyCode.NotLoggedIn, "You need to log in first");
                 return;
             }
-            if (string.IsNullOrEmpty(parameter))
+            if (string.IsNullOrEmpty(parameter) || parameter == "﻿")
             {
                 await ReplyAsync(
                     FtpReplyCode.SyntaxErrorInParametersOrArguments,

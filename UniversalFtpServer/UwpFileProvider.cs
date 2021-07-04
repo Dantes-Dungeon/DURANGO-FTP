@@ -153,15 +153,27 @@ namespace UniversalFtpServer
                 List<MonitoredFolderItem> monfiles = PinvokeFilesystem.GetItems(reformatedpath);
                 foreach (var item in monfiles)
                 {
-                    FileSystemEntry entry = new FileSystemEntry()
+                    switch (item.Name) 
                     {
-                        IsDirectory = item.IsDir,
-                        IsReadOnly = item.attributes.HasFlag(System.IO.FileAttributes.ReadOnly),
-                        LastWriteTime = item.DateModified.ToUniversalTime().DateTime,
-                        Length = (long)item.Size,
-                        Name = item.Name
-                    };
-                    result.Add(entry);
+                        case ".":
+                            break;
+                        case "..":
+                            break;
+                        case "﻿":
+                            break;
+                        default:
+                            FileSystemEntry entry = new FileSystemEntry()
+                            {
+                                IsDirectory = item.IsDir,
+                                IsReadOnly = item.attributes.HasFlag(System.IO.FileAttributes.ReadOnly),
+                                LastWriteTime = item.DateModified.ToUniversalTime().DateTime,
+                                Length = (long)item.Size,
+                                Name = item.Name
+                            };
+                            result.Add(entry);
+                            break;
+                    }
+                    
                 }   
             }
 
@@ -181,7 +193,7 @@ namespace UniversalFtpServer
             return "/" + workFolder;
         }
 
-        public async Task<Stream> OpenFileForReadAsync(string path)
+        public async Task<Stream> OpenFileForReadAsync(string path) 
         {
             path = GetLocalVfsPath(path);
             var file = await StorageFile.GetFileFromPathAsync(path);
