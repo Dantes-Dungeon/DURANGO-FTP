@@ -336,10 +336,6 @@ namespace UniversalFtpServer
             }
         }
 
-        private void RateButton_Click(object sender, RoutedEventArgs e)
-        {
-        }
-
         private void PrintLog(string log)
         {
             logsBlock.Text = log + "\n" + logsBlock.Text;
@@ -347,11 +343,6 @@ namespace UniversalFtpServer
             {
                 logsBlock.Text = logsBlock.Text.Substring(0, 1000);
             }
-        }
-
-        private void TextBlock_SelectionChanged(object sender, RoutedEventArgs e)
-        {
-
         }
     }
 }

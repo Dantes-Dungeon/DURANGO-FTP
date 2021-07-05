@@ -10,7 +10,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <TextBlock x:Uid="MainPage_TitleBlock" Margin="12"
-                   Style="{StaticResource TitleTextBlockStyle}" SelectionChanged="TextBlock_SelectionChanged" Text="Durango FTP" />
+                   Style="{StaticResource TitleTextBlockStyle}" Text="Durango FTP" />
         <ScrollViewer Grid.Row="1">
             <RelativePanel x:Name="rootPanel" Margin="6">
                 <StackPanel x:Name="controlPanel" Orientation="Vertical" RelativePanel.AlignLeftWithPanel="True"
