@@ -196,15 +196,29 @@ namespace UniversalFtpServer
         public async Task<Stream> OpenFileForReadAsync(string path) 
         {
             path = GetLocalVfsPath(path);
-            IntPtr hStream = PinvokeFilesystem.CreateFileFromApp(path, PinvokeFilesystem.GENERIC_READ, 0, IntPtr.Zero, PinvokeFilesystem.OPEN_ALWAYS, 4, IntPtr.Zero);
-            return new FileStream(hStream, FileAccess.Read);
+            try
+            {
+                IntPtr hStream = PinvokeFilesystem.CreateFileFromApp((@"\\?\" + path), PinvokeFilesystem.GENERIC_READ, 0, IntPtr.Zero, PinvokeFilesystem.OPEN_ALWAYS, 4, IntPtr.Zero);
+                return new FileStream(hStream, FileAccess.Read);
+            }
+            catch 
+            {
+                var file = await StorageFile.GetFileFromPathAsync(path);
+                return await file.OpenStreamForReadAsync();
+            }
         }
 
         public async Task<Stream> OpenFileForWriteAsync(string path)
         {
             path = GetLocalVfsPath(path);
-            var file = await StorageFile.GetFileFromPathAsync(path);
-            return await file.OpenStreamForWriteAsync();
+            try
+            {
+                IntPtr hStream = PinvokeFilesystem.CreateFileFromApp((@"\\?\" + path), PinvokeFilesystem.GENERIC_WRITE | PinvokeFilesystem.GENERIC_READ, 0, IntPtr.Zero, PinvokeFilesystem.OPEN_ALWAYS, (uint)PinvokeFilesystem.File_Attributes.BackupSemantics, IntPtr.Zero);
+                return new FileStream(hStream, FileAccess.ReadWrite);
+            } catch {
+                var file = await StorageFile.GetFileFromPathAsync(path);
+                return await file.OpenStreamForWriteAsync();
+            }
         }
 
         public async Task RenameAsync(string fromPath, string toPath)
