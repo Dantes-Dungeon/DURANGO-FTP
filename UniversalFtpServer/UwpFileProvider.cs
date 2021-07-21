@@ -321,9 +321,8 @@ namespace UniversalFtpServer
                 //get the parent of the apps local appdata folder
                 var Localfoldertask = ApplicationData.Current.LocalFolder.GetParentAsync();
                 Localfoldertask.AsTask().Wait();
-                var localfolderresult = Localfoldertask.GetResults();
                 //get the parent of that folder
-                Localfoldertask = localfolderresult.GetParentAsync();
+                Localfoldertask = Localfoldertask.GetResults().GetParentAsync();
                 Localfoldertask.AsTask().Wait();
                 //get the path value of that folder as a string and set the base directory of the input path to be the local app data folder
                 localpath[0] = Localfoldertask.GetResults().Path;
