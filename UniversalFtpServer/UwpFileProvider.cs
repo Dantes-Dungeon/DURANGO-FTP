@@ -11,6 +11,7 @@ namespace UniversalFtpServer
 {
     class UwpFileProvider : IFileProvider
     {
+
         string rootFolder;
         string workFolder = string.Empty;
 
@@ -76,12 +77,14 @@ namespace UniversalFtpServer
             } else {
                 throw new FileBusyException("Items of unknown type can't be deleted");
             }
+            MainPage.Current.RefreshStorage();
         }
 
         public async Task DeleteDirectoryAsync(string path)
         {
             path = GetLocalVfsPath(path);
             await RecursivelyDeleteDirectoryAsync(path);
+            MainPage.Current.RefreshStorage();
         }
 
         public async Task RecursivelyDeleteDirectoryAsync(string path) 
@@ -178,6 +181,7 @@ namespace UniversalFtpServer
             }
 
             //return list of entrys
+            MainPage.Current.RefreshStorage();
             return Task.FromResult(result.AsEnumerable());
         }
 
@@ -247,7 +251,7 @@ namespace UniversalFtpServer
             }
         }
 
-        private async Task<bool> MoveFolderAsync(string folder, string destination)
+        private async Task<bool> MoveFolderAsync(string folder, string destination, bool firstcall = true)
         {
 
             List<MonitoredFolderItem> mininfo = PinvokeFilesystem.GetMinInfo(folder);
@@ -261,7 +265,7 @@ namespace UniversalFtpServer
                     {
                         PinvokeFilesystem.CreateDirectoryFromApp(@"\\?\" + targetpath, IntPtr.Zero);
                     });
-                    await MoveFolderAsync(itempath, targetpath);
+                    await MoveFolderAsync(itempath, targetpath, false);
                 }
                 else
                 {
@@ -277,6 +281,8 @@ namespace UniversalFtpServer
             if (mininfo.Count() == 0)
             {
                 await Task.Run(() => { PinvokeFilesystem.RemoveDirectoryFromApp(@"\\?\" + folder); });
+                if (firstcall)
+                    MainPage.Current.RefreshStorage();
                 return true;
             }
             else

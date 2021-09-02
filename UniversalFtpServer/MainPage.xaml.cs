@@ -32,6 +32,8 @@ namespace UniversalFtpServer
     /// </summary>
     public sealed partial class MainPage : Page
     {
+        public static MainPage Current;
+
         const string Ipv4Listening = "MainPage_Ipv4Listening";
         const string Ipv6Listening = "MainPage_Ipv6Listening";
         const string Ipv4Error = "MainPage_Ipv4Error";
@@ -67,6 +69,8 @@ namespace UniversalFtpServer
             this.InitializeComponent();
             Loaded += MainPage_Loaded;
             Unloaded += MainPage_Unloaded;
+
+            Current = this;
 
             var settings = ApplicationData.Current.LocalSettings;
             if (settings.Values[RootFolderSetting] is string token)
@@ -106,6 +110,58 @@ namespace UniversalFtpServer
                             select host.DisplayName;
             addressesBlock.Text = string.Join('\n', addresses);
             NetworkInformation.NetworkStatusChanged += NetworkInformation_NetworkStatusChanged;
+            var basicProperties = Windows.Storage.ApplicationData.Current.LocalFolder.GetBasicPropertiesAsync().AsTask();
+            basicProperties.Wait();
+            var propertiesDict = basicProperties.Result.RetrievePropertiesAsync(new string[] { "System.Capacity"}).AsTask();
+            propertiesDict.Wait();
+            capacity = (ulong)propertiesDict.Result["System.Capacity"];
+            capacitystr = SizeSuffix((Int64)capacity);
+            RefreshStorage();
+
+        }
+
+        ulong capacity { get; set; }
+        private static string capacitystr { get; set; }
+
+        public void RefreshStorage() 
+        {
+            var basicProperties = Windows.Storage.ApplicationData.Current.LocalFolder.GetBasicPropertiesAsync().AsTask();
+            basicProperties.Wait();
+            var propertiesDict = basicProperties.Result.RetrievePropertiesAsync(new string[] { "System.Capacity", "System.FreeSpace" }).AsTask();
+            propertiesDict.Wait();
+            ulong freespace = (ulong)propertiesDict.Result["System.FreeSpace"];
+            string freespacestr = SizeSuffix((Int64)freespace);
+            storageblock.Text = $"{freespacestr} of {capacitystr} are free";
+            double temp = (((capacity - freespace) * 1.0) / (capacity * 1.0) * 100);
+            progress.Value = temp;
+        }
+
+
+        static string SizeSuffix(Int64 value, int decimalPlaces = 1)
+        {
+            string[] SizeSuffixes = { "bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
+            if (decimalPlaces < 0) { throw new ArgumentOutOfRangeException("decimalPlaces"); }
+            if (value < 0) { return "-" + SizeSuffix(-value, decimalPlaces); }
+            if (value == 0) { return string.Format("{0:n" + decimalPlaces + "} bytes", 0); }
+
+            // mag is 0 for bytes, 1 for KB, 2, for MB, etc.
+            int mag = (int)Math.Log(value, 1024);
+
+            // 1L << (mag * 10) == 2 ^ (10 * mag) 
+            // [i.e. the number of bytes in the unit corresponding to mag]
+            decimal adjustedSize = (decimal)value / (1L << (mag * 10));
+
+            // make adjustment when the value is large enough that
+            // it would round up to 1000 or more
+            if (Math.Round(adjustedSize, decimalPlaces) >= 1000)
+            {
+                mag += 1;
+                adjustedSize /= 1024;
+            }
+
+            return string.Format("{0:n" + decimalPlaces + "} {1}",
+                adjustedSize,
+                SizeSuffixes[mag]);
         }
 
         private void MainPage_Unloaded(object sender, RoutedEventArgs e)
@@ -334,6 +390,7 @@ namespace UniversalFtpServer
                 rootFolder = folder;
                 rootPath = folder.Path;
             }
+            RefreshStorage();
         }
 
         private void PrintLog(string log)
@@ -343,6 +400,11 @@ namespace UniversalFtpServer
             {
                 logsBlock.Text = logsBlock.Text.Substring(0, 1000);
             }
+        }
+
+        private void storageblock_SelectionChanged(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

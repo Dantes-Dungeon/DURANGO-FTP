@@ -9,7 +9,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <TextBlock x:Uid="MainPage_TitleBlock" Margin="12"
+        <TextBlock x:Uid="MainPage_TitleBlock" Margin="12,12,812,12"
                    Style="{StaticResource TitleTextBlockStyle}" Text="Durango FTP" />
         <ScrollViewer Grid.Row="1">
             <RelativePanel x:Name="rootPanel" Margin="6">
@@ -25,22 +25,21 @@
                             Content="Start-" />
                     <Button x:Name="stopButton" x:Uid="MainPage_StopButton" Margin="6" Click="StopButton_Click" Content="Stop-"
                             Visibility="Collapsed" />
+                    <TextBlock x:Uid="MainPage_ImportantNotes_Para1" FontWeight="Bold"
+                               TextWrapping="WrapWholeWords"><Run Text="Important notes:"/></TextBlock>
+                    <TextBlock x:Uid="MainPage_ImportantNotes_Para3" TextWrapping="WrapWholeWords"><Run Text="You can only access the FTP server from another device."/></TextBlock>
                 </StackPanel>
                 <StackPanel x:Name="statusPanel" Orientation="Vertical" RelativePanel.AlignBottomWithPanel="True"
                             RelativePanel.AlignLeftWithPanel="True" RelativePanel.AlignRightWithPanel="True"
                             RelativePanel.Below="controlPanel">
-                    <TextBlock x:Uid="MainPage_ImportantNotes_Para1" Margin="6,6,6,4" FontWeight="Bold"
-                               TextWrapping="WrapWholeWords">
-                        Important notes:
-                    </TextBlock>
-                    <TextBlock x:Uid="MainPage_ImportantNotes_Para3" Margin="18,0,6,0" TextWrapping="WrapWholeWords">
-                        You can only access the FTP server from another device.
-                    </TextBlock>
-                    <TextBlock x:Uid="MainPage_ServerStatusHint" Margin="6,12,6,4" FontWeight="Bold" Text="Status:-" />
+                    <TextBlock x:Uid="MainPage_StorageHint" Margin="6,12,6,4" FontWeight="Bold" Text="Local Appdata Storage:" />
+                    <TextBlock x:Name="storageblock" Margin="18,0,6,0" Text="" SelectionChanged="storageblock_SelectionChanged" />
+                    <ProgressBar x:Name="progress" Height="25" BorderThickness="17,0,17,0"/>
+                    <TextBlock x:Uid="MainPage_ServerStatusHint" Margin="6,12,6,4" FontWeight="Bold" Text="Status:" />
                     <TextBlock x:Name="statusBlock4" Margin="18,0,6,0" />
                     <TextBlock x:Name="statusBlock6" Margin="18,0,6,0" />
                     <TextBlock x:Uid="MainPage_AddressesHint" Margin="6,12,6,4" FontWeight="Bold"
-                               Text="Addresses of this computer:-" />
+                               Text="Addresses of this computer:" />
                     <TextBlock x:Name="addressesBlock" Margin="18,0,6,0" IsTextSelectionEnabled="True" />
                     <TextBlock x:Uid="MainPage_LogsHint" Margin="6,12,6,4" FontWeight="Bold" Text="Logs:-"/>
                     <TextBlock x:Name="logsBlock" Margin="18,0,6,0" IsTextSelectionEnabled="True" />
