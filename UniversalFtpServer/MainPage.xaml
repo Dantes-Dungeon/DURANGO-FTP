@@ -9,7 +9,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <TextBlock x:Uid="MainPage_TitleBlock" Margin="12,12,812,12"
+        <TextBlock x:Uid="MainPage_TitleBlock" Margin="12,12,706,12"
                    Style="{StaticResource TitleTextBlockStyle}" Text="Durango FTP" />
         <ScrollViewer Grid.Row="1">
             <RelativePanel x:Name="rootPanel" Margin="6">

@@ -324,14 +324,8 @@ namespace UniversalFtpServer
             {
                 //split the path into each folder
                 string[] localpath = toFullPath.Split("\\");
-                //get the parent of the apps local appdata folder
-                var Localfoldertask = ApplicationData.Current.LocalFolder.GetParentAsync();
-                Localfoldertask.AsTask().Wait();
-                //get the parent of that folder
-                Localfoldertask = Localfoldertask.GetResults().GetParentAsync();
-                Localfoldertask.AsTask().Wait();
-                //get the path value of that folder as a string and set the base directory of the input path to be the local app data folder
-                localpath[0] = Localfoldertask.GetResults().Path;
+                //get local state folder
+                localpath[0] = UserDataPaths.GetForUser(App.user).LocalAppData + "\\Packages";
                 //rejoin the parts of the path together
                 toFullPath = String.Join("\\", localpath);
             }
