@@ -286,7 +286,7 @@ namespace UniversalFtpServer
 					//set modified time
 					long datemodifiedoffset = findDataResult.lastWriteTime.dwHighDateTime;
 					datemodifiedoffset = (datemodifiedoffset << 32);
-					datemodifiedoffset = datemodifiedoffset | (long)(uint)findDataResult.creationTime.dwLowDateTime;
+					datemodifiedoffset = datemodifiedoffset | (long)(uint)findDataResult.lastWriteTime.dwLowDateTime;
 					fileitem.DateModified = System.DateTimeOffset.FromFileTime(datemodifiedoffset);
 
 					//set the size
