@@ -128,6 +128,7 @@ namespace Zhaobang.FtpServer.Connections
         {
             CommandOkay = 200,
             SystemStatus = 211,
+            FileStatus = 213,
             CommandUnrecognized = 500,
             SyntaxErrorInParametersOrArguments = 501,
             NotImplemented = 502,
@@ -273,7 +274,7 @@ namespace Zhaobang.FtpServer.Connections
                     await ReplyAsync(FtpReplyCode.NameSystemType, "UNIX simulated by .NET Core");
                     return;
                 case "FEAT":
-                    await ReplyMultilineAsync(FtpReplyCode.SystemStatus, "Supports:\nUTF8");
+                    await ReplyMultilineAsync(FtpReplyCode.SystemStatus, "Supports:\nUTF8\nMFMT\nMDTM");
                     return;
                 case "OPTS":
                     if (parameter.ToUpperInvariant() == "UTF8 ON")
@@ -387,6 +388,14 @@ namespace Zhaobang.FtpServer.Connections
                     return;
                 case "PROT":
                     await CommandProtAsync(parameter);
+                    return;
+                case "MFMT":
+                    var parameterSegs = parameter.Split(new[] { ' ' }, 2);
+                    var dateTimeString = parameterSegs[0];
+                    await CommandMfmtAsync(parameterSegs[1], dateTimeString);
+                    return;
+                case "MDTM":
+                    await CommandMdtmAsync(parameter);
                     return;
             }
             await ReplyAsync(FtpReplyCode.CommandUnrecognized, "Can't recognize this command.");
@@ -595,10 +604,99 @@ namespace Zhaobang.FtpServer.Connections
                 await ReplyAsync(FtpReplyCode.FileSpaceInsufficient, string.Format("Writing file denied: {0}", ex.Message));
                 return;
             }
-
+            
             await dataConnection.DisconnectAsync();
             await ReplyAsync(FtpReplyCode.SuccessClosingDataConnection, "File has been recieved");
             return;
+        }
+
+        private async Task CommandMfmtAsync(string path, string dateTimeString)
+        {
+            if (!authenticated)
+            {
+                await ReplyAsync(FtpReplyCode.NotLoggedIn, "You need to log in first");
+                return;
+            }
+            if (string.IsNullOrEmpty(path) || string.IsNullOrEmpty(dateTimeString))
+            {
+                await ReplyAsync(
+                    FtpReplyCode.SyntaxErrorInParametersOrArguments,
+                    "Syntax error, path or modification time is missing");
+                return;
+            }
+
+            try
+            {
+                var dateTime = DateTime.ParseExact(
+                        dateTimeString,
+                        "yyyyMMddHHmmss",
+                        CultureInfo.InvariantCulture,
+                        DateTimeStyles.AssumeUniversal);
+                await fileProvider.SetFileModificationTimeAsync(path, dateTime);
+
+                // FTP standards state the return should be the new datetime source from the filesystem,
+                // not what was provided in the params. This is because the target file system might not
+                // be as accurate the requested modifcation time was, eg. may not support seconds.
+                var resultingModificationTime = await fileProvider.GetFileModificationTimeAsync(path);
+
+                await ReplyAsync(FtpReplyCode.FileStatus, string.Format("Modify={0}; {1}", resultingModificationTime.ToString("yyyyMMddHHmmss"), path));
+                return;
+            }
+            catch (FormatException ex)
+            {
+                await ReplyAsync(FtpReplyCode.SyntaxErrorInParametersOrArguments, string.Format("Cannot parse modifiation time: {0}", ex.Message));
+                return;
+            }
+            catch (FileBusyException ex)
+            {
+                await ReplyAsync(FtpReplyCode.FileBusy, string.Format("File temporarily unavailable: {0}", ex.Message));
+                return;
+            }
+            catch (FileNoAccessException ex)
+            {
+                await ReplyAsync(FtpReplyCode.FileNoAccess, string.Format("File access denied: {0}", ex.Message));
+                return;
+            }
+        }
+
+        private async Task CommandMdtmAsync(string path)
+        {
+            if (!authenticated)
+            {
+                await ReplyAsync(FtpReplyCode.NotLoggedIn, "You need to log in first");
+                return;
+            }
+            if (string.IsNullOrEmpty(path))
+            {
+                await ReplyAsync(
+                    FtpReplyCode.SyntaxErrorInParametersOrArguments,
+                    "Syntax error, path is missing");
+                return;
+            }
+
+            try
+            {
+                var resultingModificationTime = await fileProvider.GetFileModificationTimeAsync(path);
+
+                await ReplyAsync(FtpReplyCode.FileStatus, resultingModificationTime.ToString("yyyyMMddHHmmss"));
+                return;
+            }
+            catch (FormatException ex)
+            {
+                await ReplyAsync(FtpReplyCode.SyntaxErrorInParametersOrArguments, string.Format("Cannot parse modifiation time: {0}", ex.Message));
+                return;
+            }
+            catch (FileBusyException ex)
+            {
+                await ReplyAsync(FtpReplyCode.FileBusy, string.Format("File temporarily unavailable: {0}", ex.Message));
+                return;
+            }
+            catch (FileNoAccessException ex)
+            {
+                await ReplyAsync(FtpReplyCode.FileNoAccess, string.Format("File access denied: {0}", ex.Message));
+                return;
+            }
+
         }
 
         private async Task CommandRetrAsync(string parameter)

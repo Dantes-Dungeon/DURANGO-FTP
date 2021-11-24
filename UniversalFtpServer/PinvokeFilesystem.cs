@@ -157,6 +157,9 @@ namespace UniversalFtpServer
 		[DllImport("api-ms-win-core-file-l1-1-0.dll")]
 		static extern bool FindClose(IntPtr hFindFile);
 
+		[DllImport("api-ms-win-core-file-l1-2-1.dll")]
+        static extern bool SetFileTime(IntPtr hTimeFile, IntPtr lpCreationTime, IntPtr lpLastAccessTime, ref long lpLastWriteTime);
+
 		public enum GET_FILEEX_INFO_LEVELS
 		{
 			GetFileExInfoStandard,
@@ -197,6 +200,8 @@ namespace UniversalFtpServer
 		public const uint FILE_SHARE_READ = 0x00000001;
 		public const uint FILE_SHARE_WRITE = 0x00000002;
 		public const uint FILE_SHARE_DELETE = 0x00000004;
+
+		public const uint FILE_WRITE_ATTRIBUTES = 0x00000100;
 
 		public const uint CREATE_ALWAYS = 2;
 		public const uint CREATE_NEW = 1;
@@ -243,6 +248,45 @@ namespace UniversalFtpServer
 			uint dwFlagsAndAttributes,
 			IntPtr hTemplateFile
 		);
+
+		public static bool SetFileModificationTime(string path, DateTime newTime)
+		{
+			IntPtr hFile = CreateFileFromApp(path, PinvokeFilesystem.FILE_WRITE_ATTRIBUTES, 0, IntPtr.Zero, PinvokeFilesystem.OPEN_EXISTING, (uint)PinvokeFilesystem.File_Attributes.BackupSemantics, IntPtr.Zero);
+
+			long dateTimeLong = newTime.ToFileTime();
+			if (hFile.ToInt64() != -1)
+			{
+				SetFileTime(hFile, IntPtr.Zero, IntPtr.Zero, ref dateTimeLong);
+			}
+
+			return true;
+		}
+
+		public static DateTime GetFileModificationTime(string path)
+		{
+			WIN32_FIND_DATA findDataResult;
+			FINDEX_INFO_LEVELS findInfoLevel = FINDEX_INFO_LEVELS.FindExInfoBasic;
+			var dateModified = DateTime.MinValue;
+
+			int additionalFlags = 0;
+			if (Environment.OSVersion.Version.Major >= 6)
+			{
+				findInfoLevel = FINDEX_INFO_LEVELS.FindExInfoBasic;
+				additionalFlags = FIND_FIRST_EX_LARGE_FETCH;
+			}
+
+			IntPtr hFile = FindFirstFileExFromApp(path, findInfoLevel, out findDataResult, FINDEX_SEARCH_OPS.FindExSearchNameMatch, IntPtr.Zero, additionalFlags);
+			if (hFile.ToInt64() != -1)
+			{
+				long datemodifiedoffset = findDataResult.lastWriteTime.dwHighDateTime;
+				datemodifiedoffset = (datemodifiedoffset << 32);
+				datemodifiedoffset = datemodifiedoffset | (long)(uint)findDataResult.lastWriteTime.dwLowDateTime;
+				dateModified = System.DateTimeOffset.FromFileTime(datemodifiedoffset).ToUniversalTime().DateTime;
+				FindClose(hFile);
+			}
+
+			return dateModified;
+		}
 
 		//function
 		public static List<MonitoredFolderItem> GetItems(string path)

@@ -26,6 +26,35 @@ namespace UniversalFtpServer
             await RecursivelyCreateDirectoryAsync(fullPath);
         }
 
+        public async Task<bool> SetFileModificationTimeAsync(string path, DateTime newTime)
+        {
+            path = GetLocalVfsPath(path);
+            var pathexists = ItemExists(path);
+            if (pathexists)
+            {
+                await Task.Run(() => { PinvokeFilesystem.SetFileModificationTime(path, newTime); });
+                return true;
+            }
+            else
+            {
+                throw new FileNotFoundException();
+            }
+        }
+
+        public async Task<DateTime> GetFileModificationTimeAsync(string path)
+        {
+            path = GetLocalVfsPath(path);
+            var pathexists = ItemExists(path);
+            if (pathexists)
+            {
+                return await Task.Run(() => {return PinvokeFilesystem.GetFileModificationTime(path); });
+            } 
+            else
+            {
+                throw new FileNotFoundException();
+            }
+        }
+
         public async Task<Stream> CreateFileForWriteAsync(string path)
         {
             path = GetLocalVfsPath(path);
