@@ -85,6 +85,20 @@ namespace Zhaobang.FtpServer.File
         Task<Stream> CreateFileForWriteAsync(string path);
 
         /// <summary>
+        /// Sets the last modified time for a file
+        /// </summary>
+        /// <param name="path">Absolute or relative FTP path of the file.</param>
+        /// <returns>Whether the updating the time succeeded or not.</returns>
+        Task<bool> SetFileModificationTimeAsync(string path, DateTime newTime);
+
+        /// <summary>
+        /// Gets the last modified time for a file
+        /// </summary>
+        /// <param name="path">Absolute or relative FTP path of the file.</param>
+        /// <returns>DateTime of last modification.</returns>
+        Task<DateTime> GetFileModificationTimeAsync(string path);
+
+        /// <summary>
         /// Gets the names of files and directories.
         /// </summary>
         /// <param name="path">Absolute or relative FTP path of the file.</param>

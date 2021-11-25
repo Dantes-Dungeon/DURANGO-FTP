@@ -178,6 +178,20 @@ namespace Zhaobang.FtpServer.File
             return System.IO.File.OpenWrite(localPath);
         }
 
+#pragma warning disable CS1998
+        public async Task<bool> SetFileModificationTimeAsync(string path, DateTime newTime)
+#pragma warning restore CS1998
+        {
+            throw new NotImplementedException();
+        }
+
+#pragma warning disable CS1998
+        public async Task<DateTime> GetFileModificationTimeAsync(string path)
+#pragma warning restore CS1998
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Creates a new file for writing.
         /// If the file already exists, replace it instead.
