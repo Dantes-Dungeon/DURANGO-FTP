@@ -9,16 +9,10 @@ namespace UniversalFtpServer
 {
     class UwpFileProviderFactory : IFileProviderFactory
     {
-        string rootFolder;
-
-        public UwpFileProviderFactory(string rootFolder)
-        {
-            this.rootFolder = rootFolder;
-        }
-
+      
         public IFileProvider GetProvider(string user)
         {
-            return new UwpFileProvider(rootFolder);
+            return new UwpFileProvider();
         }
     }
 }

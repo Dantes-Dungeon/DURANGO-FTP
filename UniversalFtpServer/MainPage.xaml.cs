@@ -60,7 +60,6 @@ namespace UniversalFtpServer
         FtpServer server6;
         Task server6Run;
         CancellationTokenSource cts;
-        string rootPath;
         StorageFolder rootFolder;
         readonly object rootFolderSyncRoot = new object();
 
@@ -73,20 +72,6 @@ namespace UniversalFtpServer
             Current = this;
 
             var settings = ApplicationData.Current.LocalSettings;
-            if (settings.Values[RootFolderSetting] is string token)
-            {
-                var result = LoadRootFolderAsync(token);
-            }
-            else
-            {
-                var folder = "VFSROOT";
-
-                lock (rootFolderSyncRoot)
-                {
-                    //rootFolder = folder;
-                    rootPath = folder;
-                }
-            }
             if (!(settings.Values[SettingVersionSetting] is int version && version == 1))
             {
                 settings.Values[SettingVersionSetting] = 1;
@@ -225,12 +210,12 @@ namespace UniversalFtpServer
                 {
                     server4 = new FtpServer(
                         ep4,
-                        new UwpFileProviderFactory(rootPath),
+                        new UwpFileProviderFactory(),
                         new Zhaobang.FtpServer.Connections.LocalDataConnectionFactory(),
                         new Zhaobang.FtpServer.Authenticate.AnonymousAuthenticator());
                     server6 = new FtpServer(
                         ep6,
-                        new UwpFileProviderFactory(rootPath),
+                        new UwpFileProviderFactory(),
                         new Zhaobang.FtpServer.Connections.LocalDataConnectionFactory(),
                         new Zhaobang.FtpServer.Authenticate.AnonymousAuthenticator());
                 }
@@ -238,12 +223,12 @@ namespace UniversalFtpServer
                 {
                     server4 = new FtpServer(
                         ep4,
-                        new UwpFileProviderFactory(rootPath),
+                        new UwpFileProviderFactory(),
                         new Zhaobang.FtpServer.Connections.LocalDataConnectionFactory(),
                         new Zhaobang.FtpServer.Authenticate.SimpleAuthenticator(userName, password));
                     server6 = new FtpServer(
                         ep6,
-                        new UwpFileProviderFactory(rootPath),
+                        new UwpFileProviderFactory(),
                         new Zhaobang.FtpServer.Connections.LocalDataConnectionFactory(),
                         new Zhaobang.FtpServer.Authenticate.SimpleAuthenticator(userName, password));
                 }
@@ -372,25 +357,6 @@ namespace UniversalFtpServer
         private void allowAnonymousBox_Unchecked(object sender, RoutedEventArgs e)
         {
             VisualStateManager.GoToState(this, nameof(notAnonymousState), true);
-        }
-
-
-        private async Task LoadRootFolderAsync(string token)
-        {
-            var folder = ApplicationData.Current.LocalFolder;
-
-            try
-            {
-                folder = await StorageApplicationPermissions.MostRecentlyUsedList.GetFolderAsync(token);
-            }
-            catch { }
-
-            lock (rootFolderSyncRoot)
-            {
-                rootFolder = folder;
-                rootPath = folder.Path;
-            }
-            RefreshStorage();
         }
 
         private void PrintLog(string log)

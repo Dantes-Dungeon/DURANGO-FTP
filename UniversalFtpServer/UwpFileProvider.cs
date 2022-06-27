@@ -15,11 +15,6 @@ namespace UniversalFtpServer
         string rootFolder;
         string workFolder = string.Empty;
 
-        public UwpFileProvider(string rootFolder)
-        {
-            this.rootFolder = rootFolder;
-        }
-
         public async Task CreateDirectoryAsync(string path)
         {
             string fullPath = GetLocalVfsPath(path);
@@ -139,15 +134,13 @@ namespace UniversalFtpServer
                 path = "";
             }
             string fullPath = GetLocalPath(path);
-            //SetWorkingDirectory(fullPath);
-            string[] splitpath = fullPath.Split("VFSROOT");
 
             //create empty list of filesystem entries
             List<FileSystemEntry> result = new List<FileSystemEntry>();
 
             //check if the current path is the root of the virtual filesystem
             // the \\- check is to make sure that it is not a sub command being entered
-            if (splitpath[1] == "" || splitpath[1].StartsWith("\\-"))
+            if (fullPath == "" || fullPath.StartsWith("\\-"))
             {
                 //if in this if statement then the check returned true
                 //get all drives
@@ -338,12 +331,6 @@ namespace UniversalFtpServer
         {
             //get full path from parameter "toPath"
             string toFullPath = GetLocalPath(path);
-            //split from path based on vfsroot, overwrite old split path variable as it won't be referenced again and I don't want to assign another variable
-            string[] splitpath = toFullPath.Split("VFSROOT");
-            //replace from full path with corrected string and trim the start of it
-            toFullPath = splitpath[1].TrimStart('/', '\\');
-            //trim end of string
-            toFullPath = toFullPath.TrimEnd('/', '\\');
             if (!toFullPath.Contains("LOCALFOLDER"))
             {
                 //add the colon for file access
@@ -376,23 +363,12 @@ namespace UniversalFtpServer
         /// <exception cref="PathTooLongException"/>
         private string GetLocalPath(string path)
         {
-            string fullPath = Path.Combine(workFolder, path).TrimStart('/', '\\');
-            string localPath = Path.GetFullPath(Path.Combine(rootFolder, fullPath)).TrimEnd('/', '\\');
-            string baseLocalPath = Path.GetFullPath(rootFolder).TrimEnd('/', '\\');
-            if (!Path.GetFullPath(localPath).Contains(baseLocalPath))
-                throw new UnauthorizedAccessException("User tried to access out of base directory");
-            return localPath;
+            return Path.Combine(workFolder, path).TrimStart('/', '\\').TrimEnd('/', '\\').Replace("/", "\\");
         }
 
         private string GetFtpPath(string localPath)
         {
-            string localFullPath = Path.GetFullPath(localPath).TrimEnd('/', '\\');
-            string baseFullPath = Path.GetFullPath(rootFolder).TrimEnd('/', '\\');
-            if (!localFullPath.Contains(baseFullPath))
-            {
-                throw new UnauthorizedAccessException("User tried to access out of base directory");
-            }
-            return localFullPath.Replace(baseFullPath, string.Empty).TrimStart('/', '\\').Replace('\\', '/');
+            return localPath.TrimEnd('/', '\\').TrimStart('/', '\\').Replace('\\', '/');
         }
     }
 }
