@@ -12,7 +12,6 @@ namespace UniversalFtpServer
     class UwpFileProvider : IFileProvider
     {
 
-        string rootFolder;
         string workFolder = string.Empty;
 
         public async Task CreateDirectoryAsync(string path)
@@ -143,6 +142,44 @@ namespace UniversalFtpServer
             if (fullPath == "" || fullPath.StartsWith("\\-"))
             {
                 //if in this if statement then the check returned true
+
+                //add entry for the so called Local folder - used to access apps local data
+                FileSystemEntry localentry = new FileSystemEntry()
+                {
+                    IsDirectory = true,
+                    IsReadOnly = true,
+                    LastWriteTime = DateTime.Now,
+                    Length = 0,
+                    Name = "LOCALFOLDER"
+                };
+                //add the entry that was just created
+
+                result.Add(localentry);
+
+                //add entry for the DRIVES
+                localentry = new FileSystemEntry()
+                {
+                    IsDirectory = true,
+                    IsReadOnly = true,
+                    LastWriteTime = DateTime.Now,
+                    Length = 0,
+                    Name = "DRIVES"
+                };
+
+                result.Add(localentry);
+
+                /*//add entry for the APPS
+                localentry = new FileSystemEntry()
+                {
+                    IsDirectory = true,
+                    IsReadOnly = true,
+                    LastWriteTime = DateTime.Now,
+                    Length = 0,
+                    Name = "APPS"
+                };
+
+                result.Add(localentry);*/
+            } else if (fullPath == "DRIVES") {
                 //get all drives
                 List<string> drives = PinvokeFilesystem.GetDrives();
                 //loop through all the drives
@@ -160,19 +197,6 @@ namespace UniversalFtpServer
                     //add the entry
                     result.Add(entry);
                 }
-
-                //add entry for the so called Local folder - used to access apps local data
-                FileSystemEntry localentry = new FileSystemEntry()
-                {
-                    IsDirectory = true,
-                    IsReadOnly = true,
-                    LastWriteTime = DateTime.Now,
-                    Length = 0,
-                    Name = "LOCALFOLDER"
-                };
-                //add the entry that was just created
-
-                result.Add(localentry);
             } else {
                 string reformatedpath = GetLocalVfsPath(path);
                 List<MonitoredFolderItem> monfiles = PinvokeFilesystem.GetItems(reformatedpath);
@@ -202,7 +226,7 @@ namespace UniversalFtpServer
                 }   
             }
 
-            //return list of entrys
+            //return list of entries
             MainPage.Current.RefreshStorage();
             return Task.FromResult(result.AsEnumerable());
         }
@@ -331,12 +355,16 @@ namespace UniversalFtpServer
         {
             //get full path from parameter "toPath"
             string toFullPath = GetLocalPath(path);
-            if (!toFullPath.Contains("LOCALFOLDER"))
+            if (toFullPath.StartsWith("DRIVES"))
             {
                 //add the colon for file access
+                //split the path into each folder
+                var localpath = toFullPath.Split("\\").ToList();
+                localpath.RemoveAt(0);
+                toFullPath = String.Join("\\", localpath);
                 toFullPath = toFullPath.Insert(1, ":");
             }
-            else
+            else if(toFullPath.Contains("LOCALFOLDER"))
             {
                 //split the path into each folder
                 string[] localpath = toFullPath.Split("\\");
