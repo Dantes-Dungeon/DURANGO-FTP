@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Windows.Storage;
+using Windows.UI.Composition;
 using Zhaobang.FtpServer.File;
 
 namespace UniversalFtpServer
@@ -13,6 +15,71 @@ namespace UniversalFtpServer
     {
 
         string workFolder = string.Empty;
+
+        Dictionary<string, List<string>> appPaths = new Dictionary<string, List<string>>();
+
+        public UwpFileProvider()
+        {
+            this.appPaths = GenerateAppPaths();
+        }
+
+        public Dictionary<string, List<string>> GenerateAppPaths()
+        {
+            Dictionary<string, List<string>> paths = new Dictionary<string, List<string>>();
+            Dictionary<string,string> filePatterns = new Dictionary<string,string>()
+            {
+                {"Retroarch","retroarch.cfg"},
+                {"DuckStation","settings.ini"},
+                {"Flycast", "emu.cfg"}
+            };
+            Dictionary<string, string> directoryPatterns = new Dictionary<string, string>()
+            {
+                {"PPSSPP", "psp"},
+                {"PCSX2", "cheats_ws"}
+            };
+
+            foreach (string name in filePatterns.Keys)
+                paths.Add(name, new List<string>());
+            foreach (string name in directoryPatterns.Keys)
+                paths.Add(name, new List<string>());
+
+            List<MonitoredFolderItem> monfiles = PinvokeFilesystem.GetItems(Path.Combine(UserDataPaths.GetForUser(App.user).LocalAppData, "Packages"));
+            List<MonitoredFolderItem> totalMonitoredFolderItems = new List<MonitoredFolderItem>();
+            foreach (MonitoredFolderItem monfile in monfiles)
+            {
+                if (monfile.IsDir)
+                {
+                    List<MonitoredFolderItem> appmonfiles = PinvokeFilesystem.GetItems(Path.Combine(monfile.ParentFolderPath, monfile.Name, "LocalState"));
+                    totalMonitoredFolderItems.AddRange(appmonfiles);
+                }
+            }
+            foreach (KeyValuePair<string, string> filePattern in filePatterns)
+            {
+                foreach (MonitoredFolderItem item in totalMonitoredFolderItems)
+                {
+                    if (!item.IsDir)
+                    {
+                        if (item.Name == filePattern.Value)
+                            paths[filePattern.Key].Add(Path.GetFileName(Path.GetDirectoryName(item.ParentFolderPath)));
+
+                    }
+                }
+            }
+
+            foreach (KeyValuePair<string, string> directoryPattern in directoryPatterns)
+            {
+                foreach (MonitoredFolderItem item in totalMonitoredFolderItems)
+                {
+                    if (item.IsDir)
+                    {
+                        if (item.Name == directoryPattern.Value)
+                            paths[directoryPattern.Key].Add(Path.GetFileName(Path.GetDirectoryName(item.ParentFolderPath)));
+
+                    }
+                }
+            }
+            return paths;
+        }
 
         public async Task CreateDirectoryAsync(string path)
         {
@@ -168,7 +235,7 @@ namespace UniversalFtpServer
 
                 result.Add(localentry);
 
-                /*//add entry for the APPS
+                //add entry for the APPS
                 localentry = new FileSystemEntry()
                 {
                     IsDirectory = true,
@@ -178,7 +245,7 @@ namespace UniversalFtpServer
                     Name = "APPS"
                 };
 
-                result.Add(localentry);*/
+                result.Add(localentry);
             } else if (fullPath == "DRIVES") {
                 //get all drives
                 List<string> drives = PinvokeFilesystem.GetDrives();
@@ -196,6 +263,35 @@ namespace UniversalFtpServer
                     };
                     //add the entry
                     result.Add(entry);
+                }
+            } else if (fullPath == "APPS") {
+                foreach (string name in appPaths.Keys)
+                {
+                    FileSystemEntry localentry = new FileSystemEntry()
+                    {
+                        IsDirectory = true,
+                        IsReadOnly = true,
+                        LastWriteTime = DateTime.Now,
+                        Length = 0,
+                        Name = name
+                    };
+
+                    result.Add(localentry);
+                }
+            } else if (fullPath.StartsWith("APPS") && fullPath.Split('\\','/').Length == 2) {
+                string[] folders = fullPath.Split('\\', '/');
+                foreach (string name in appPaths[folders[1]])
+                {
+                    FileSystemEntry localentry = new FileSystemEntry()
+                    {
+                        IsDirectory = true,
+                        IsReadOnly = true,
+                        LastWriteTime = DateTime.Now,
+                        Length = 0,
+                        Name = name
+                    };
+
+                    result.Add(localentry);
                 }
             } else {
                 string reformatedpath = GetLocalVfsPath(path);
@@ -355,19 +451,19 @@ namespace UniversalFtpServer
         {
             //get full path from parameter "toPath"
             string toFullPath = GetLocalPath(path);
+            //split the path into each folder
+            var localpath = toFullPath.Split("\\").ToList();
             if (toFullPath.StartsWith("DRIVES"))
             {
                 //add the colon for file access
-                //split the path into each folder
-                var localpath = toFullPath.Split("\\").ToList();
                 localpath.RemoveAt(0);
                 toFullPath = String.Join("\\", localpath);
                 toFullPath = toFullPath.Insert(1, ":");
             }
-            else if(toFullPath.Contains("LOCALFOLDER"))
+            else
             {
-                //split the path into each folder
-                string[] localpath = toFullPath.Split("\\");
+                if(toFullPath.StartsWith("APPS"))
+                    localpath.RemoveAt(0);
                 //get local state folder
                 localpath[0] = UserDataPaths.GetForUser(App.user).LocalAppData + "\\Packages";
                 //rejoin the parts of the path together
