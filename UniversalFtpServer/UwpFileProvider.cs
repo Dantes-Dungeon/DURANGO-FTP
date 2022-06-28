@@ -34,7 +34,7 @@ namespace UniversalFtpServer
             };
             Dictionary<string, string> directoryPatterns = new Dictionary<string, string>()
             {
-                {"PPSSPP", "psp"},
+                {"PPSSPP", "PSP"},
                 {"PCSX2", "cheats_ws"}
             };
 
