@@ -1,0 +1,46 @@
+name: Durango FTP dev mode
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  winrt-build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
+    - name: setup-msbuild
+      uses: microsoft/setup-msbuild@v1.0.2
+    - name: Setup NuGet.exe for use with actions
+      uses: NuGet/setup-nuget@v1
+      with:
+        nuget-version: latest  
+    - name: Get the version
+      id: get_version
+      run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+      shell: bash
+    - name: NuGet restore
+      run: |
+        cd DURANGO-FTP
+        nuget restore
+        cd ..
+    - name: Build project
+      run: |
+        cd DURANGO-FTP
+        msbuild UniversalFtpServer.sln /p:OutputPath=output /p:Platform=x64 /p:Configuration=Release /p:AppxBundlePlatforms="x64" /p:AppxPackageDir="$env:PACKAGE_DIR" /p:AppxBundle=Always /p:UapAppxPackageBuildMode="Sideload" /p:AppxPackageSigningEnabled=true /p:PackageCertificateThumbprint="" /p:PackageCertificateKeyFile="$env:CERT_FILE" /p:PackageCertificatePassword="$env:CERT_KEY"
+        cd ..
+      shell: powershell
+      env:
+        PACKAGE_DIR: appx
+        PACKAGE_BUILD_MODE: SideloadOnly
+        CERT_FILE: UniversalFtpServer_TemporaryKey.pfx
+        CERT_KEY: ${{ secrets.CERT_KEY }}
+    - uses: actions/upload-artifact@v2
+      with:
+        name: DURANGO-FTP-Release
+        path: DURANGO-FTP/UniversalFtpServer/appx/*
