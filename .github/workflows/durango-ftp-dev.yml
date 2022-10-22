@@ -39,4 +39,4 @@ jobs:
     - uses: actions/upload-artifact@v2
       with:
         name: DURANGO-FTP-Release
-        path: DURANGO-FTP/UniversalFtpServer/appx/*
+        path: UniversalFtpServer/appx/*
