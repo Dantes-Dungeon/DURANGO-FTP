@@ -26,9 +26,7 @@ jobs:
       shell: bash
     - name: NuGet restore
       run: |
-        cd DURANGO-FTP
         nuget restore
-        cd ..
     - name: Build project
       run: |
         cd DURANGO-FTP
