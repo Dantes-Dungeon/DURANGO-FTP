@@ -29,9 +29,7 @@ jobs:
         nuget restore
     - name: Build project
       run: |
-        cd DURANGO-FTP
         msbuild UniversalFtpServer.sln /p:OutputPath=output /p:Platform=x64 /p:Configuration=Release /p:AppxBundlePlatforms="x64" /p:AppxPackageDir="$env:PACKAGE_DIR" /p:AppxBundle=Always /p:UapAppxPackageBuildMode="Sideload" /p:AppxPackageSigningEnabled=true /p:PackageCertificateThumbprint="" /p:PackageCertificateKeyFile="$env:CERT_FILE" /p:PackageCertificatePassword="$env:CERT_KEY"
-        cd ..
       shell: powershell
       env:
         PACKAGE_DIR: appx
