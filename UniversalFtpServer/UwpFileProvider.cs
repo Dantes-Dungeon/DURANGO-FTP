@@ -29,10 +29,10 @@ namespace UniversalFtpServer
             Dictionary<string,string> filePatterns = new Dictionary<string,string>()
             {
                 {"RetroArch","retroarch.cfg"},
-				{"Dolphin", "user.txt"},
+		{"Dolphin", "user.txt"},
                 {"Flycast", "emu.cfg"},
-				{"Xenia", "xenia.config.toml"},
-				{"Xenia Canary", "xenia-canary.config.toml"}
+		{"Xenia", "xenia.config.toml"},
+		{"Xenia Canary", "xenia-canary.config.toml"}
             };
             Dictionary<string, string> directoryPatterns = new Dictionary<string, string>()
             {
