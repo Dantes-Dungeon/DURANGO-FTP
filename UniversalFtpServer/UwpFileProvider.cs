@@ -28,16 +28,16 @@ namespace UniversalFtpServer
             Dictionary<string, List<string>> paths = new Dictionary<string, List<string>>();
             Dictionary<string,string> filePatterns = new Dictionary<string,string>()
             {
-                {"RetroArch","retroarch.cfg"},
-                {"Dolphin", "user.txt"},
-                {"Flycast", "emu.cfg"},
-                {"Xenia", "xenia.config.toml"},
-                {"Xenia Canary", "xenia-canary.config.toml"}
+                {"Retroarch","retroarch.cfg"},
+                {"DuckStation","settings.ini"},
+                {"Flycast", "emu.cfg"}
             };
             Dictionary<string, string> directoryPatterns = new Dictionary<string, string>()
             {
                 {"PPSSPP", "PSP"},
-                {"XBSX2", "inis"}
+                {"PCSX2", "cheats_ws"},
+                {"XBSX2", "widescreenpatches"},
+                {"Minecraft", "games"}
             };
 
             foreach (string name in filePatterns.Keys)
